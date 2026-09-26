@@ -1,7 +1,6 @@
 # TIIS — Tactical Intelligence Ingestion System
 ### Local, Air-Gapped, Hybrid-Engine Threat Intelligence Platform · v2.1
 
-> **TOP SECRET // SCI // NOFORN // ORCON**
 > *Handling caveat: This system processes structured and unstructured intelligence entirely on local hardware. No data leaves the host machine.*
 
 ---
