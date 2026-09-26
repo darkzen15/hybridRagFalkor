@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+graphiti-core[falkordb]>=0.10.0
+pydantic
+httpx
+pypdf
+apscheduler
+python-multipart
+trafilatura
+falkordb
+git+https://github.com/FalkorDB/json2graph.git

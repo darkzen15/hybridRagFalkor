@@ -1,0 +1,73 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+    ports:
+      - "8080:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - WEBUI_AUTH=false
+      - ENABLE_RAG=true
+      - ENABLE_TITLE_GENERATION=False
+    volumes:
+      - ./openwebui_data:/app/backend/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: falkordb
+    ports:
+      - "6379:6379"
+      - "3000:3000"
+    volumes:
+      - ./falkordb_data:/var/lib/falkordb/data
+    environment:
+      - REDIS_ARGS=--appendonly yes --appendfsync everysec --save 60 1000
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  graphiti-worker:
+    build:
+      context: ./graphiti_app
+      dockerfile: Dockerfile
+    container_name: graphiti-worker
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=sk-ollama-local-dummy-key
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6379
+      - FALKORDB_DATABASE=threat_intel
+      - LLM_MODEL=qwen2.5-coder:14b
+      - EMBEDDING_MODEL=nomic-embed-text:latest
+    volumes:
+      - ./graphiti_app:/app
+      - ./ingest_config:/app/config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      falkordb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ingest-ui:
+    build:
+      context: ./ingest_ui
+      dockerfile: Dockerfile
+    container_name: ingest-ui
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://graphiti-worker:8000
+    volumes:
+      - ./ingest_ui:/app
+    depends_on:
+      - graphiti-worker
+    restart: unless-stopped

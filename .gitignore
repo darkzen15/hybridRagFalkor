@@ -1,0 +1,17 @@
+﻿# ---- Runtime data volumes (NEVER commit) ----
+openwebui_data/
+falkordb_data/
+ingest_config/
+
+# ---- Python junk ----
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# ---- Secrets / OS junk ----
+.env
+*.key
+Thumbs.db
+Desktop.ini
+.DS_Store
