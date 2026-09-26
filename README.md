@@ -130,7 +130,7 @@ Results are merged into a single report the LLM cites when answering.
 ## 3. Repository Layout & Persistence
 
 ```
-C:\Users\JJ\Desktop\LocalLLM\
+C:\Users\xxxx\Desktop\LocalLLM\
 ├── docker-compose.yml            # falkordb, graphiti-worker, ingest-ui
 ├── README.md                     # this document
 ├── falkordb_data\                # PERSISTENT graph database files
@@ -169,7 +169,7 @@ C:\Users\JJ\Desktop\LocalLLM\
 
 ### 5.1 Core stack
 ```powershell
-cd C:\Users\JJ\Desktop\LocalLLM
+cd C:\Users\xxxx\Desktop\LocalLLM
 docker compose build
 docker compose up -d
 docker compose ps        # expect: falkordb / graphiti-worker / ingest-ui  = Up
@@ -190,7 +190,7 @@ Browser checks:
 ### 5.4 Open WebUI (standalone container)
 ```powershell
 docker run -d --name openwebui --network localllm_default -p 8080:8080 `
-  -v C:\Users\JJ\Desktop\LocalLLM\openwebui_data:/app/backend/data `
+  -v C:\Users\xxxx\Desktop\LocalLLM\openwebui_data:/app/backend/data `
   -e OLLAMA_BASE_URL=http://host.docker.internal:11434 `
   -e WEBUI_AUTH=false `
   -e ENABLE_RAG=true `
