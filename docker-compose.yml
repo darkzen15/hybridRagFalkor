@@ -1,6 +1,6 @@
 services:
   open-webui:
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:latest
     container_name: openwebui
     ports:
       - "8080:8080"
@@ -69,5 +69,20 @@ services:
     volumes:
       - ./ingest_ui:/app
     depends_on:
+      - graphiti-worker
+    restart: unless-stopped
+
+  tiis-mcp:
+    build: ./tiis_mcp
+    container_name: tiis-mcp
+    ports:
+      - "9000:9000"          # exposed so Hermes on the host can reach it
+    environment:
+      - TIIS_API=http://graphiti-worker:8000
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6379
+      - FALKORDB_DATABASE=threat_intel
+    depends_on:
+      - falkordb
       - graphiti-worker
     restart: unless-stopped

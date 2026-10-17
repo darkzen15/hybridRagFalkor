@@ -1,331 +1,359 @@
 import os
 import time
-import streamlit as st
 import requests
-import json
+import streamlit as st
+import pandas as pd
 
 API_URL = os.getenv("API_URL", "http://graphiti-worker:8000")
 
-# ==========================================
-# 1. CLANDESTINE UI STYLING (CSS INJECTION)
-# ==========================================
-st.set_page_config(page_title="TIIS - Secure Terminal", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="TIIS v2.1", page_icon="🛡️", layout="wide", initial_sidebar_state="collapsed")
 
+# ==========================================
+# CLASSIFIED THEME
+# ==========================================
 st.markdown("""
 <style>
-    /* Global Terminal Aesthetic */
-    .stApp {
-        background-color: #0b1120;
-        color: #cbd5e1;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    /* Official Classification Banner */
-    .classification-banner {
-        background-color: #991b1b;
-        color: #ffffff;
-        text-align: center;
-        padding: 6px;
-        font-weight: bold;
-        font-size: 13px;
-        letter-spacing: 2px;
-        margin-bottom: 20px;
-        border: 1px solid #7f1d1d;
-    }
-
-    /* Header Styling */
-    .gov-header {
-        border-bottom: 2px solid #334155;
-        padding-bottom: 15px;
-        margin-bottom: 30px;
-    }
-    .gov-title {
-        color: #f8fafc;
-        font-size: 22px;
-        font-weight: 600;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }
-    .gov-subtitle {
-        color: #64748b;
-        font-size: 11px;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        margin-bottom: 5px;
-    }
-    .status-text { font-size: 11px; color: #64748b; letter-spacing: 1px; }
-    .status-ok { color: #22c55e; font-weight: bold; }
-
-    /* Strict Data Tables & Metrics */
-    .stMetric {
-        background-color: #1e293b;
-        padding: 15px;
-        border-radius: 0;
-        border-left: 3px solid #3b82f6;
-        box-shadow: none;
-    }
-    .stDataFrame { border: 1px solid #334155; border-radius: 0; }
-    .stDataFrame thead { background-color: #0f172a; }
-
-    /* Bureaucratic Tabs */
-    button[kind="secondary"] {
-        background-color: transparent !important;
-        color: #64748b !important;
-        border: none !important;
-        border-bottom: 2px solid transparent !important;
-        border-radius: 0 !important;
-        font-size: 12px !important;
-        letter-spacing: 1px !important;
-        text-transform: uppercase !important;
-        padding: 10px 15px !important;
-    }
-    button[kind="secondary"][aria-selected="true"] {
-        color: #f8fafc !important;
-        border-bottom: 2px solid #3b82f6 !important;
-    }
-
-    /* Strict Buttons */
-    .stButton > button {
-        background-color: #1e293b !important;
-        color: #f8fafc !important;
-        border: 1px solid #475569 !important;
-        border-radius: 0 !important;
-        text-transform: uppercase !important;
-        font-size: 12px !important;
-        letter-spacing: 1px !important;
-        padding: 8px 16px !important;
-    }
-    .stButton > button:hover {
-        background-color: #334155 !important;
-        border-color: #94a3b8 !important;
-    }
-
-    /* Hide Streamlit Footer & Menu */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+#MainMenu, footer, header {visibility: hidden;}
+.stApp {background-color: #0b0f14; color: #c9d1d9; font-family: Consolas, 'Courier New', monospace;}
+div[data-testid='stHeader'] {background: transparent;}
+.classbanner {background:#7a0000; color:#ffffff; text-align:center; font-weight:bold;
+                padding:6px 0; letter-spacing:3px; border:1px solid #ff5555; margin-bottom:6px;}
+.agencyhead {text-align:center; color:#8b949e; letter-spacing:2px; margin:2px 0;}
+.sysTitle {text-align:center; color:#58a6ff; letter-spacing:4px; font-weight:700; margin:6px 0 14px 0;}
+div[data-testid='stTabs'] button {font-family: Consolas, monospace; letter-spacing:1px;}
 </style>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# 2. OFFICIAL HEADER & STATUS BAR
-# ==========================================
-st.markdown('<div class="classification-banner">UNOFFICIAL // UNCLASS // OPEN SOURCE // ORCON</div>', unsafe_allow_html=True)
+st.markdown('<div class="classbanner">OSINT // TLP:AMBER // ORCON</div>', unsafe_allow_html=True)
+st.markdown('<div class="agencyhead"> VIMES NIGHTWATCHER </div>', unsafe_allow_html=True)
+st.markdown('<div class="sysTitle">TACTICAL INTELLIGENCE INGESTION SYSTEM (TIIS) v2.1</div>', unsafe_allow_html=True)
 
-st.markdown("""
-<div class="gov-header">
-    <div class="gov-subtitle">Long Term Intelligence Correlation Project</div>
-    <div class="gov-title">TACTICAL INTELLIGENCE INGESTION SYSTEM (TIIS) v2.1</div>
-    <div style="display: flex; justify-content: space-between; margin-top: 15px;" class="status-text">
-        <span>[FALKORDB] <span class="status-ok">● ONLINE</span></span>
-        <span>[OLLAMA] <span class="status-ok">● CONNECTED</span></span>
-        <span>[GRAPHITI] <span class="status-ok">● ACTIVE</span></span>
-        <span>[USER] <span style="color:#f8fafc">ADMINISTRATOR</span></span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ==========================================
-# 3. SECURE TAB NAVIGATION
-# ==========================================
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "01 // SYSTEM OVERVIEW",
     "02 // DOCUMENT INGESTION",
     "03 // OSINT COLLECTION",
     "04 // AUTOMATED FEEDS",
-    "05 // AUDIT LOG"
+    "05 // AUDIT LOG",
+    "06 // GRAPH ENRICHMENT",
+    "07 // RAW INTEL PASTE",
 ])
 
 # ==========================================
-# TAB 1: SYSTEM OVERVIEW
+# HELPERS
+# ==========================================
+def api_get(path, **kw):
+    return requests.get(f"{API_URL}{path}", timeout=15, **kw)
+
+def show_job_progress(jobs):
+    for j in jobs:
+        try:
+            p = api_get(f"/progress/{j['job_id']}").json()
+        except Exception:
+            continue
+        total = p.get("total") or 1
+        frac = min((p.get("current") or 0) / total, 1.0)
+        label = f"{j['filename']} — {p.get('current', 0)}/{p.get('total', 0)} [{p.get('status', '?')}]"
+        if p.get("status") == "error":
+            st.error(f"{label}: {p.get('error')}")
+        else:
+            st.progress(frac, text=label)
+
+# ==========================================
+# TAB 01: SYSTEM OVERVIEW + JOB MONITOR
 # ==========================================
 with tab1:
-    st.header(">> SYSTEM METRICS")
+    st.subheader("SYSTEM OVERVIEW // LIVE METRICS")
     try:
-        stats = requests.get(f"{API_URL}/stats", timeout=30).json()
-        col1, col2, col3, col4 = st.columns(4)
-        with col1: st.metric("NODES", stats.get("nodes", 0))
-        with col2: st.metric("EDGES", stats.get("edges", 0))
-        with col3: st.metric("EPISODES", stats.get("episodes", 0))
-        with col4: st.metric("ACTIVE JOBS", stats.get("active_jobs", 0))
-    except Exception as e: st.error(f"Telemetry failure: {e}")
+        s = api_get("/stats").json()
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("NODES", s.get("nodes", 0))
+        c2.metric("EDGES", s.get("edges", 0))
+        c3.metric("EPISODES", s.get("episodes", 0))
+        c4.metric("ACTIVE JOBS", s.get("active_jobs", 0))
+    except Exception as e:
+        st.error(f"Backend unreachable: {e}")
 
-    st.divider()
-    st.subheader(">> RECENT TELEMETRY")
-    try:
-        recent = requests.get(f"{API_URL}/recent?limit=10", timeout=5).json().get("recent_episodes", [])
-        for ep in recent:
-            with st.expander(f"📄 {ep.get('name', 'UNKNOWN')}"):
-                st.write(f"**DESCRIPTION:** {ep.get('description', 'N/A')}")
-                st.write(f"**TIMESTAMP:** {ep.get('time', 'UNKNOWN')}")
-    except Exception as e: st.error(f"Telemetry failure: {e}")
+    st.markdown("---")
+    st.subheader("JOB MONITOR // ALL INGESTION & ENRICHMENT TASKS")
+    st.caption("Tracks jobs from UI uploads, URL collection, text paste, Hermes/OpenWebUI MCP writes, and enrichment runs.")
 
-    st.divider()
-    st.subheader(">> ENTITY & RELATIONSHIP SAMPLE")
+    if st.button("REFRESH JOB LIST", key="refresh_jobs"):
+        st.rerun()
+
     try:
-        entities = requests.get(f"{API_URL}/entities?limit=15", timeout=5).json().get("entities", [])
-        if entities: st.write(", ".join([e.get("name", "?") for e in entities]))
-    except: pass
-    try:
-        rels = requests.get(f"{API_URL}/relationships?limit=10", timeout=5).json().get("relationships", [])
-        for r in rels: st.write(f"**{r.get('source')}** → {r.get('relationship')} → **{r.get('target')}**")
-    except: pass
+        jobs_data = api_get("/jobs", params={"limit": 50}).json()
+        jobs = jobs_data.get("jobs", [])
+
+        if not jobs:
+            st.info("No jobs tracked yet.")
+        else:
+            rows = []
+            for j in jobs:
+                total = j.get("total", 0) or 1
+                pct = min((j.get("current", 0) / total) * 100, 100)
+
+                src = j.get("source", "ui")
+                src_label = {"ui": "🖥️ UI", "mcp": "🤖 MCP (Hermes/OpenWebUI)", "auto": "⚡ Auto"}.get(src, src)
+
+                status = j.get("status", "unknown")
+                status_icon = {"processing": "🔄", "complete": "✅", "error": "❌"}.get(status, "❓")
+
+                rows.append({
+                    "Status": f"{status_icon} {status}",
+                    "Source": src_label,
+                    "Name": j.get("filename", "unknown"),
+                    "Progress": f"{j.get('current', 0)}/{j.get('total', 0)} ({pct:.0f}%)",
+                    "Started": j.get("created_at", "N/A")[:19].replace("T", " "),
+                })
+
+            df = pd.DataFrame(rows)
+            st.dataframe(df, width='stretch', hide_index=True)
+
+            errors = [j for j in jobs if j.get("status") == "error" and j.get("error")]
+            if errors:
+                st.markdown("#### ⚠️ Recent Errors")
+                for e in errors[:5]:
+                    st.error(f"**{e.get('filename')}**: {e.get('error')}")
+
+    except Exception as e:
+        st.warning(f"Could not load job list: {e}")
+
+    st.markdown("---")
+    colA, colB = st.columns(2)
+    with colA:
+        st.markdown("#### RECENT EPISODES")
+        try:
+            rec = api_get("/recent", params={"limit": 10}).json().get("recent_episodes", [])
+            if rec:
+                st.dataframe(pd.DataFrame(rec), width='stretch')
+            else:
+                st.info("Empty.")
+        except Exception:
+            st.info("Empty.")
+    with colB:
+        st.markdown("#### RELATIONSHIP SAMPLE")
+        try:
+            rel = api_get("/relationships", params={"limit": 15}).json().get("relationships", [])
+            if rel:
+                st.dataframe(pd.DataFrame(rel), width='stretch')
+            else:
+                st.info("Empty.")
+        except Exception:
+            st.info("Empty.")
 
 # ==========================================
-# TAB 2: DOCUMENT INGESTION
+# TAB 02: DOCUMENT INGESTION
 # ==========================================
 with tab2:
-    st.header(">> DOCUMENT INGESTION PROTOCOL")
-    st.caption("Supported formats: PDF, TXT, JSON, MD. Batch processing enabled.")
+    st.subheader("DOCUMENT INGESTION // BATCH UPLOAD")
+    source_type = st.text_input("SOURCE CLASSIFICATION", value="Manual Upload")
+    custom_prompt = st.text_area("CUSTOM EXTRACTION DIRECTIVES (optional)", value="")
+    uploaded = st.file_uploader("SELECT TARGET DOCUMENTS (PDF / TXT / MD / HTML / JSON)",
+                                accept_multiple_files=True, type=["pdf", "txt", "md", "html", "json"])
+    force = st.checkbox("AUTHORIZE FORCE RE-INGEST (bypass duplicate check)", value=False)
+    auto_enrich = st.checkbox("AUTO-ENRICH AFTER INGEST (LLM link discovery)", value=False)
 
-    uploaded_files = st.file_uploader("SELECT TARGET DOCUMENTS", type=["pdf", "txt", "json", "md"], accept_multiple_files=True)
-    source_type = st.selectbox("SOURCE CLASSIFICATION", ["OSINT", "CTI/MISP", "HUMINT", "INTERNAL REPORT"], key="file_source")
-    custom_prompt = st.text_area("CUSTOM EXTRACTION DIRECTIVES (OPTIONAL)", placeholder="e.g., Focus on extracting IP addresses, CVEs, and MITRE ATT&CK TTPs.", height=80, key="file_prompt")
+    if st.button("INITIATE PROCESSING", type="primary"):
+        if not uploaded:
+            st.warning("No documents selected.")
+        else:
+            files_payload = [("files", (f.name, f.getvalue(), "application/octet-stream")) for f in uploaded]
+            r = requests.post(
+                f"{API_URL}/upload", files=files_payload,
+                data={"source_type": source_type, "custom_prompt": custom_prompt,
+                      "force": str(force).lower(), "auto_enrich": str(auto_enrich).lower()},
+                timeout=30
+            )
+            if r.status_code == 409:
+                st.error(r.json().get("detail", "Duplicate detected."))
+            elif r.status_code == 200:
+                st.session_state["last_jobs"] = r.json().get("jobs", [])
+                st.success(r.json().get("message", "Queued."))
+            else:
+                st.error(f"Upload failed: {r.text}")
 
-    if st.button("INITIATE PROCESSING"):
-        if uploaded_files:
-            files_payload = [("files", (f.name, f.getvalue(), f.type)) for f in uploaded_files]
-            data = {"source_type": source_type, "custom_prompt": custom_prompt, "force": "false"}
-
-            resp = requests.post(f"{API_URL}/upload", files=files_payload, data=data)
-
-            if resp.status_code == 409:
-                st.session_state['dup_files_payload'] = files_payload
-                st.session_state['dup_files_data'] = {"source_type": source_type, "custom_prompt": custom_prompt, "force": "true"}
-                st.warning(f"⚠️ CONFLICT DETECTED: {resp.json()['detail']}. AUTHORIZE FORCE RE-INGESTION?")
-                if st.button("AUTHORIZE FORCE RE-INGEST"): st.rerun()
-            elif resp.status_code == 200:
-                res = resp.json()
-                jobs = res["jobs"]
-                st.info(f"✅ SUCCESSFULLY QUEUED {len(jobs)} DOCUMENTS.")
-
-                job_ui_elements = []
-                for job in jobs:
-                    st.markdown(f"** {job['filename']}**")
-                    col1, col2 = st.columns([3, 1])
-                    with col1: bar = st.progress(0)
-                    with col2: txt = st.empty()
-                    job_ui_elements.append({"job_id": job["job_id"], "total": job["total_chunks"], "bar": bar, "txt": txt})
-
-                st.divider()
-                st.subheader(">> LIVE PROCESSING STATUS")
-                while True:
-                    all_done = True
-                    for item in job_ui_elements:
-                        p = requests.get(f"{API_URL}/progress/{item['job_id']}", timeout=5).json()
-                        pct = int((p["current"] / item["total"]) * 100) if item["total"] > 0 else 0
-                        item["bar"].progress(pct)
-                        if p["status"] == "processing":
-                            all_done = False; item["txt"].info(f"⏳ {p['current']}/{item['total']}")
-                        elif p["status"] == "complete": item["txt"].success("✅ COMPLETE")
-                        elif p["status"] == "error": item["txt"].error(f"❌ FAILED")
-                    if all_done:
-                        st.success("🎉 ALL DOCUMENTS PROCESSED SUCCESSFULLY."); break
-                    time.sleep(1)
-            else: st.error(f"INGESTION FAILED: {resp.text}")
-        else: st.warning("NO DOCUMENTS SELECTED.")
-
-    if 'dup_files_payload' in st.session_state and 'dup_files_data' in st.session_state:
-        st.info("EXECUTING FORCE RE-INGESTION...")
-        resp = requests.post(f"{API_URL}/upload", files=st.session_state['dup_files_payload'], data=st.session_state['dup_files_data'])
-        if resp.status_code == 200: st.success("RE-INGESTION COMPLETE."); st.rerun()
-        else: st.error(f"FORCE INGESTION FAILED: {resp.text}")
-        del st.session_state['dup_files_payload']; del st.session_state['dup_files_data']
+    if st.session_state.get("last_jobs"):
+        st.markdown("#### LIVE JOB QUEUE")
+        show_job_progress(st.session_state["last_jobs"])
+        if st.button("REFRESH STATUS"):
+            st.rerun()
 
 # ==========================================
-# TAB 3: OSINT COLLECTION
+# TAB 03: OSINT COLLECTION
 # ==========================================
 with tab3:
-    st.header(">> OSINT COLLECTION PROTOCOL")
-    st.caption("Extract and ingest main article content from target URLs.")
+    st.subheader("OSINT COLLECTION // URL HARVEST")
+    url = st.text_input("TARGET URL")
+    url_type = st.text_input("CLASSIFICATION", value="Web Article")
+    force_url = st.checkbox("FORCE RE-INGEST", value=False)
 
-    url_input = st.text_input("TARGET URL", placeholder="https://example.com/threat-report")
-    url_source_type = st.selectbox("SOURCE CLASSIFICATION", ["OSINT", "NEWS ARTICLE", "RESEARCH PAPER", "BLOG POST"], key="url_source")
-    url_custom_prompt = st.text_area("CUSTOM EXTRACTION DIRECTIVES (OPTIONAL)", placeholder="e.g., Only extract entities related to Russian threat actors.", height=80, key="url_prompt")
+    if st.button("COLLECT & INGEST", type="primary"):
+        if not url:
+            st.warning("Enter a URL.")
+        else:
+            r = requests.post(
+                f"{API_URL}/ingest-url",
+                data={"url": url, "source_type": url_type, "force": str(force_url).lower()},
+                timeout=60
+            )
+            if r.status_code == 409:
+                st.error(r.json().get("detail", "Duplicate URL."))
+            elif r.status_code == 200:
+                job = r.json()
+                st.session_state["last_url_job"] = [{"filename": url, "job_id": job["job_id"]}]
+                st.success(job.get("message", "Queued."))
+            else:
+                st.error(f"Collection failed: {r.text}")
 
-    if st.button("INITIATE COLLECTION"):
-        if url_input:
-            data = {"url": url_input, "source_type": url_source_type, "custom_prompt": url_custom_prompt, "force": "false"}
-            resp = requests.post(f"{API_URL}/ingest-url", data=data)
-
-            if resp.status_code == 409:
-                st.session_state['dup_url_data'] = {"url": url_input, "source_type": url_source_type, "custom_prompt": url_custom_prompt, "force": "true"}
-                st.warning(f"⚠️ CONFLICT DETECTED: {resp.json()['detail']}. AUTHORIZE FORCE RE-INGESTION?")
-                if st.button("AUTHORIZE FORCE RE-INGEST"): st.rerun()
-            elif resp.status_code == 200:
-                res = resp.json()
-                job_id, total = res["job_id"], res["total_chunks"]
-                st.info(f"TARGET SPLIT INTO {total} CHUNKS. PROCESSING...")
-                bar, txt = st.progress(0), st.empty()
-                while True:
-                    p = requests.get(f"{API_URL}/progress/{job_id}", timeout=5).json()
-                    pct = int((p["current"] / total) * 100) if total > 0 else 0
-                    bar.progress(pct)
-                    if p["status"] == "complete": txt.success("✅ COMPLETE"); break
-                    elif p["status"] == "error": txt.error(f"❌ FAILED: {p.get('error')}"); break
-                    else: txt.info(f"⏳ CHUNK {p['current']}/{total}...")
-                    time.sleep(0.5)
-            else: st.error(f"COLLECTION FAILED: {resp.text}")
-        else: st.warning("NO URL PROVIDED.")
-
-    if 'dup_url_data' in st.session_state:
-        st.info("EXECUTING FORCE RE-INGESTION...")
-        resp = requests.post(f"{API_URL}/ingest-url", data=st.session_state['dup_url_data'])
-        if resp.status_code == 200: st.success("RE-INGESTION COMPLETE."); st.rerun()
-        else: st.error(f"FORCE INGESTION FAILED: {resp.text}")
-        del st.session_state['dup_url_data']
+    if st.session_state.get("last_url_job"):
+        show_job_progress(st.session_state["last_url_job"])
 
 # ==========================================
-# TAB 4: AUTOMATED FEEDS
+# TAB 04: AUTOMATED FEEDS
 # ==========================================
 with tab4:
-    st.header(">> AUTOMATED FEED MANAGEMENT")
-    st.caption("System polls registered RSS/URL feeds every 30 minutes.")
-    try: sources = requests.get(f"{API_URL}/sources").json().get("rss_feeds", [])
-    except: st.error("API CONNECTION FAILURE."); sources = []
-
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        new_name = st.text_input("FEED DESIGNATION")
-        new_url = st.text_input("FEED URL")
-    with col2:
-        st.write(""); st.write("")
-        if st.button("REGISTER FEED"):
-            if new_name and new_url:
-                requests.post(f"{API_URL}/sources", data={"name": new_name, "url": new_url})
+    st.subheader("AUTOMATED FEEDS // RSS POLLING (30 MIN)")
+    with st.form("add_feed"):
+        name = st.text_input("FEED NAME")
+        feed_url = st.text_input("FEED URL")
+        if st.form_submit_button("REGISTER FEED"):
+            r = requests.post(f"{API_URL}/sources", data={"name": name, "url": feed_url}, timeout=15)
+            if r.ok:
+                st.success("Feed registered.")
                 st.rerun()
-
-    st.divider()
-    st.subheader(">> ACTIVE FEEDS")
-    for feed in sources:
-        col_a, col_b = st.columns([4, 1])
-        with col_a: st.write(f"**{feed['name']}**\n`{feed['url']}`")
-        with col_b:
-            if st.button("TERMINATE", key=feed['url']):
-                requests.delete(f"{API_URL}/sources", params={"url": feed['url']}); st.rerun()
-
-# ==========================================
-# TAB 5: AUDIT LOG
-# ==========================================
-with tab5:
-    st.header(">> INGESTION AUDIT LOG")
-    st.caption("Persistent record of all processed intelligence.")
+            else:
+                st.error(r.text)
 
     try:
-        history = requests.get(f"{API_URL}/history", timeout=5).json()
-        col1, col2 = st.columns(2)
+        feeds = api_get("/sources").json().get("rss_feeds", [])
+    except Exception:
+        feeds = []
+    if feeds:
+        for f in feeds:
+            c1, c2 = st.columns([6, 1])
+            c1.markdown(f"**{f['name']}** — `{f['url']}`")
+            if c2.button("TERMINATE", key=f"kill_{f['url']}"):
+                requests.delete(f"{API_URL}/sources", params={"url": f["url"]}, timeout=15)
+                st.rerun()
+    else:
+        st.info("No feeds registered.")
 
-        with col1:
-            st.subheader(" DOCUMENTS")
-            if history.get("files"):
-                file_data = [{"FILENAME": f["name"], "CLASSIFICATION": f["type"], "CHUNKS": f["chunks"], "TIMESTAMP": f["timestamp"].split("T")[0]} for f in history["files"]]
-                st.dataframe(file_data, use_container_width=True, hide_index=True)
-            else: st.info("NO DOCUMENTS IN LOG.")
+# ==========================================
+# TAB 05: AUDIT LOG
+# ==========================================
+with tab5:
+    st.subheader("AUDIT LOG // CHAIN OF CUSTODY")
+    try:
+        h = api_get("/history").json()
+    except Exception:
+        h = {"files": [], "urls": []}
+    st.markdown("#### DOCUMENTS")
+    df = pd.DataFrame(h.get("files", []))
+    if not df.empty:
+        st.dataframe(df, width='stretch')
+    else:
+        st.info("No documents ingested.")
+    st.markdown("#### URLS")
+    df2 = pd.DataFrame(h.get("urls", []))
+    if not df2.empty:
+        st.dataframe(df2, width='stretch')
+    else:
+        st.info("No URLs ingested.")
 
-        with col2:
-            st.subheader("🌐 URLS")
-            if history.get("urls"):
-                url_data = [{"URL": u["url"], "CLASSIFICATION": u["type"], "CHUNKS": u["chunks"], "TIMESTAMP": u["timestamp"].split("T")[0]} for u in history["urls"]]
-                st.dataframe(url_data, use_container_width=True, hide_index=True)
-            else: st.info("NO URLS IN LOG.")
-    except Exception as e: st.error(f"AUDIT LOG RETRIEVAL FAILED: {e}")
+# ==========================================
+# TAB 06: GRAPH ENRICHMENT
+# ==========================================
+with tab6:
+    st.subheader("GRAPH ENRICHMENT // LINK DISCOVERY")
+    st.caption("Run LLM passes over ingested record nodes to surface hidden links: "
+               "attribute hubs (ideology / TTP / weapons / claimed-by), narrative episodes "
+               "(Graphiti entity resolution), and cross-layer SAME_AS stitching.")
+
+    try:
+        labels = api_get("/record-labels").json().get("labels", [])
+    except Exception:
+        labels = []
+
+    if not labels:
+        st.info("No ingested record datasets found. Ingest a JSON file first (Tab 02).")
+    else:
+        options = ["— ALL DATASETS —"] + labels
+        sel = st.selectbox("TARGET DATASET (record label)", options)
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            run_hubs = st.checkbox("Attribute hubs (ideology / TTP / weapons / claimed-by)", value=True)
+        with c2:
+            run_narrative = st.checkbox("Narrative layer (Graphiti episodes, slow)", value=False)
+        with c3:
+            run_stitch = st.checkbox("Stitch layers (SAME_AS edges)", value=True)
+
+        if st.button("EXECUTE ENRICHMENT", type="primary"):
+            targets = labels if sel == "— ALL DATASETS —" else [sel]
+            jobs = []
+            for t in targets:
+                r = requests.post(
+                    f"{API_URL}/enrich",
+                    data={"label": t,
+                          "run_hubs": str(run_hubs).lower(),
+                          "run_narrative": str(run_narrative).lower(),
+                          "run_stitch": str(run_stitch).lower()},
+                    timeout=30,
+                )
+                if r.status_code == 200:
+                    jobs.append({"label": t, "job_id": r.json()["job_id"]})
+            st.session_state["enrich_jobs"] = jobs
+            st.success(f"Queued {len(jobs)} enrichment job(s).")
+
+        for j in st.session_state.get("enrich_jobs", []):
+            p = api_get(f"/progress/{j['job_id']}").json()
+            total = p.get("total") or 1
+            st.progress(min(p.get("current", 0) / total, 1.0),
+                        text=f"{j['label']} — {p.get('current', 0)}/{p.get('total', 0)} [{p.get('status')}]")
+
+# ==========================================
+# TAB 07: RAW INTEL PASTE
+# ==========================================
+with tab7:
+    st.subheader("RAW INTELLIGENCE // DIRECT TEXT INGESTION")
+    st.caption("Paste large blocks of raw text, intercepts, transcripts, or field reports directly into the narrative layer. "
+               "The system will chunk and extract entities in the background.")
+
+    c1, c2 = st.columns(2)
+    with c1:
+        source_name = st.text_input("SOURCE IDENTIFIER (e.g., 'SIGINT Intercept 44-A', 'Field Report 09')", value="Raw Paste")
+    with c2:
+        source_type_txt = st.text_input("CLASSIFICATION", value="Raw Intelligence")
+
+    raw_text = st.text_area("PASTE INTELLIGENCE HERE", height=450, placeholder="Paste unstructured text, transcripts, or large reports here...")
+
+    if raw_text:
+        st.caption(f"Loaded: **{len(raw_text):,}** characters | approx **{len(raw_text.split()):,}** words")
+
+    if st.button("SUBMIT TO GRAPH", type="primary"):
+        if not raw_text.strip():
+            st.warning("No text provided.")
+        else:
+            try:
+                r = requests.post(
+                    f"{API_URL}/ingest-text",
+                    json={"text": raw_text, "source_type": source_type_txt, "source_name": source_name},
+                    timeout=30
+                )
+                if r.ok:
+                    data = r.json()
+                    job_id = data.get("job_id")
+                    if job_id:
+                        st.session_state["raw_text_job"] = [{"filename": source_name, "job_id": job_id}]
+                        st.success(f"Queued for background extraction: {data.get('message')}")
+                    else:
+                        st.success(data.get("message", "Submitted successfully."))
+                else:
+                    st.error(f"Submission failed: {r.text}")
+            except Exception as e:
+                st.error(f"Network error: {e}")
+
+    if st.session_state.get("raw_text_job"):
+        st.markdown("#### EXTRACTION PROGRESS")
+        show_job_progress(st.session_state["raw_text_job"])
+        if st.button("REFRESH STATUS", key="refresh_raw"):
+            st.rerun()
